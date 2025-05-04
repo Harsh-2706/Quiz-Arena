@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IQ Arena - Quiz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #f0f0f5;
+            min-height: 100vh;
+            width: 100vw;
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            width: 100vw;
+            overflow-y: auto;
+        }
+        #app {
+            background: linear-gradient(145deg, #1f1c2c 0%, #928dab 100%);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            width: 100vw;
+            max-width: 900px;
+            min-height: 90vh;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 24px;
+            box-sizing: border-box;
+            color: #e0e0e0;
+        }
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #a3cef1;
+            text-shadow: 0 0 10px #a3cef1;
+            letter-spacing: 2px;
+        }
+        .instructions {
+            background: rgba(255,255,255,0.12);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 24px;
+            font-size: 1.18rem;
+            line-height: 1.6;
+            color: #e0e7ff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        #start-btn {
+            background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            color: #222;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 18px;
+            margin-bottom: 8px;
+            box-shadow: 0 6px 15px #38f9d7a0;
+            transition: background 0.3s, transform 0.2s;
+        }
+        #start-btn:hover {
+            background: linear-gradient(90deg, #38f9d7 0%, #43e97b 100%);
+            transform: translateY(-2px) scale(1.03);
+        }
+        #quiz-container {
+            flex-grow: 1;
+            display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .question {
+            background: rgba(255,255,255,0.13);
+            border-radius: 15px;
+            padding: 28px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            font-size: 1.3rem;
+            margin-bottom: 18px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+        button.option {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            border: none;
+            border-radius: 13px;
+            padding: 16px 30px;
+            color: #f0f0f5;
+            font-size: 1.1rem;
+            cursor: pointer;
+            flex: 1 1 40%;
+            max-width: 45%;
+            min-width: 140px;
+            transition: background 0.3s, color 0.3s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(118, 75, 162, 0.18);
+            outline: none;
+            position: relative;
+        }
+        button.option:not(.disabled):not(.selected):hover {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            color: #222;
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 8px 18px rgba(161, 140, 209, 0.25);
+        }
+        button.option.selected {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #222;
+            font-weight: bold;
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.18);
+        }
+        button.option.correct {
+            background: linear-gradient(135deg, #2ecc71 0%, #6dd5ed 100%);
+            color: #fff;
+            font-weight: bold;
+            border: 2px solid #fff;
+            box-shadow: 0 6px 18px #2ecc71a0;
+        }
+        button.option.incorrect {
+            background: linear-gradient(135deg, #e74c3c 0%, #f7971e 100%);
+            color: #fff;
+            font-weight: bold;
+            border: 2px solid #fff;
+            box-shadow: 0 6px 18px #e74c3ca0;
+        }
+        button.option.disabled {
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        #submit-btn {
+            background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            color: #222;
+            font-weight: bold;
+            cursor: pointer;
+            align-self: center;
+            margin-top: 18px;
+            margin-bottom: 8px;
+            box-shadow: 0 6px 15px #38f9d7a0;
+            transition: background 0.3s, transform 0.2s;
+        }
+        #submit-btn:disabled {
+            background: #cfd8dc;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        #submit-btn:not(:disabled):hover {
+            background: linear-gradient(90deg, #38f9d7 0%, #43e97b 100%);
+            transform: translateY(-2px) scale(1.03);
+        }
+        #score-display {
+            text-align: center;
+            font-size: 2.1rem;
+            margin-top: 26px;
+            color: #ffe082;
+            text-shadow: 0 0 10px #a3cef1;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        #restart-btn {
+            background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            color: #fff;
+            cursor: pointer;
+            align-self: center;
+            margin-top: 34px;
+            box-shadow: 0 6px 15px #764ba2a0;
+            transition: background 0.3s, transform 0.2s;
+        }
+        #restart-btn:hover {
+            background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%);
+            color: #222;
+            transform: translateY(-2px) scale(1.03);
+        }
+        .review-section {
+            margin-top: 30px;
+        }
+        .review-question {
+            background: rgba(255,255,255,0.12);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 18px;
+            font-size: 1.1rem;
+            color: #e0e7ff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .review-question .question-text {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .review-answer {
+            font-size: 1.08rem;
+            margin-bottom: 4px;
+        }
+        .your-answer {
+            color: #ffe082;
+        }
+        .your-answer.wrong {
+            color: #ff6e6e;
+        }
+        .correct-answer {
+            color: #43e97b;
+        }
+        /* Scroll to top button */
+        #scrollToTopBtn {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+            border: none;
+            outline: none;
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #222;
+            cursor: pointer;
+            padding: 16px 20px;
+            border-radius: 50%;
+            font-size: 1.7rem;
+            box-shadow: 0 6px 15px #38f9d7a0;
+            transition: background 0.3s, transform 0.2s, opacity 0.4s;
+            opacity: 0.8;
+        }
+        #scrollToTopBtn:hover {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            color: #222;
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        @media (max-width: 700px) {
+            #app {
+                padding: 10px 2vw;
+                min-height: 95vh;
+                height: 100%;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .question {
+                font-size: 1.05rem;
+                padding: 18px 6px;
+            }
+            button.option {
+                font-size: 1rem;
+                min-width: 100px;
+                padding: 10px 8px;
+            }
+            #submit-btn, #restart-btn {
+                font-size: 1.05rem;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>IQ Arena</h1>
+        <div class="instructions" id="instructions">
+            <p>
+                Welcome to <b>IQ Arena</b>!<br>
+                <span style="color:#ffe082;">Instructions:</span><br>
+                • You will be asked 10 random general knowledge questions.<br>
+                • Select your answer, then click <b>Submit</b> to lock it in.<br>
+                • The correct answer will be shown after each question.<br>
+                • The next question appears automatically.<br>
+                • At the end, you'll see your score and a review of all questions.<br>
+            </p>
+            <button id="start-btn">Start Quiz</button>
+        </div>
+        <div id="quiz-container">
+            <div class="question" id="question-text"></div>
+            <div class="options" id="options-container"></div>
+            <button id="submit-btn" disabled>Submit</button>
+            <div id="score-display"></div>
+            <button id="restart-btn" style="display:none;">Restart Quiz</button>
+            <div id="review-section" class="review-section"></div>
+        </div>
+    </div>
+    <button onclick="topFunction()" id="scrollToTopBtn" title="Go to top">↑</button>
+    <script>
+        // 50 general knowledge questions
+        const questions = [
+            { question: "What is the capital of France?", options: ["Paris", "London", "Rome", "Berlin"], correct: "Paris" },
+            { question: "Who wrote 'Romeo and Juliet'?", options: ["William Shakespeare", "Charles Dickens", "Jane Austen", "Mark Twain"], correct: "William Shakespeare" },
+            { question: "What is the largest planet in our Solar System?", options: ["Jupiter", "Mars", "Earth", "Saturn"], correct: "Jupiter" },
+            { question: "Which element has the chemical symbol 'O'?", options: ["Oxygen", "Gold", "Osmium", "Iron"], correct: "Oxygen" },
+            { question: "In which year did the Titanic sink?", options: ["1912", "1905", "1920", "1898"], correct: "1912" },
+            { question: "Who painted the Mona Lisa?", options: ["Leonardo da Vinci", "Vincent van Gogh", "Pablo Picasso", "Claude Monet"], correct: "Leonardo da Vinci" },
+            { question: "What is the hardest natural substance on Earth?", options: ["Diamond", "Gold", "Iron", "Quartz"], correct: "Diamond" },
+            { question: "Which country is known as the Land of the Rising Sun?", options: ["Japan", "China", "Thailand", "South Korea"], correct: "Japan" },
+            { question: "What is the smallest prime number?", options: ["2", "1", "3", "5"], correct: "2" },
+            { question: "Which ocean is the largest?", options: ["Pacific Ocean", "Atlantic Ocean", "Indian Ocean", "Arctic Ocean"], correct: "Pacific Ocean" },
+            { question: "Who is known as the Father of Computers?", options: ["Charles Babbage", "Alan Turing", "Isaac Newton", "Albert Einstein"], correct: "Charles Babbage" },
+            { question: "What is the main ingredient in guacamole?", options: ["Avocado", "Tomato", "Onion", "Potato"], correct: "Avocado" },
+            { question: "Which planet is known as the Red Planet?", options: ["Mars", "Venus", "Mercury", "Jupiter"], correct: "Mars" },
+            { question: "What is the largest mammal?", options: ["Blue Whale", "Elephant", "Giraffe", "Hippopotamus"], correct: "Blue Whale" },
+            { question: "Who discovered penicillin?", options: ["Alexander Fleming", "Marie Curie", "Louis Pasteur", "Isaac Newton"], correct: "Alexander Fleming" },
+            { question: "Which language has the most native speakers?", options: ["Mandarin Chinese", "English", "Spanish", "Hindi"], correct: "Mandarin Chinese" },
+            { question: "What is the currency of Japan?", options: ["Yen", "Won", "Dollar", "Euro"], correct: "Yen" },
+            { question: "Which continent is the Sahara Desert located on?", options: ["Africa", "Asia", "Australia", "South America"], correct: "Africa" },
+            { question: "Who was the first person to walk on the moon?", options: ["Neil Armstrong", "Buzz Aldrin", "Yuri Gagarin", "Michael Collins"], correct: "Neil Armstrong" },
+            { question: "What is the boiling point of water at sea level in Celsius?", options: ["100°C", "90°C", "80°C", "120°C"], correct: "100°C" },
+            { question: "Which country gifted the Statue of Liberty to the USA?", options: ["France", "England", "Germany", "Italy"], correct: "France" },
+            { question: "What is the chemical formula for table salt?", options: ["NaCl", "KCl", "NaCO3", "H2O"], correct: "NaCl" },
+            { question: "Which is the longest river in the world?", options: ["Nile", "Amazon", "Yangtze", "Mississippi"], correct: "Nile" },
+            { question: "Who is the author of 'Harry Potter' series?", options: ["J.K. Rowling", "J.R.R. Tolkien", "Stephen King", "Suzanne Collins"], correct: "J.K. Rowling" },
+            { question: "Which gas do plants absorb from the atmosphere?", options: ["Carbon Dioxide", "Oxygen", "Nitrogen", "Hydrogen"], correct: "Carbon Dioxide" },
+            { question: "What is the tallest mountain in the world?", options: ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"], correct: "Mount Everest" },
+            { question: "Who invented the telephone?", options: ["Alexander Graham Bell", "Thomas Edison", "Nikola Tesla", "Michael Faraday"], correct: "Alexander Graham Bell" },
+            { question: "Which city hosted the 2016 Summer Olympics?", options: ["Rio de Janeiro", "London", "Beijing", "Tokyo"], correct: "Rio de Janeiro" },
+            { question: "What is the largest internal organ in the human body?", options: ["Liver", "Heart", "Lung", "Kidney"], correct: "Liver" },
+            { question: "Who was the first President of the United States?", options: ["George Washington", "Abraham Lincoln", "Thomas Jefferson", "John Adams"], correct: "George Washington" },
+            { question: "Which instrument measures atmospheric pressure?", options: ["Barometer", "Thermometer", "Hygrometer", "Anemometer"], correct: "Barometer" },
+            { question: "Which planet has the most moons?", options: ["Saturn", "Jupiter", "Mars", "Earth"], correct: "Saturn" },
+            { question: "What is the main language spoken in Brazil?", options: ["Portuguese", "Spanish", "English", "French"], correct: "Portuguese" },
+            { question: "Who is known as the 'King of Pop'?", options: ["Michael Jackson", "Elvis Presley", "Freddie Mercury", "Prince"], correct: "Michael Jackson" },
+            { question: "What is the freezing point of water in Fahrenheit?", options: ["32°F", "0°F", "100°F", "212°F"], correct: "32°F" },
+            { question: "Which animal is known as the 'Ship of the Desert'?", options: ["Camel", "Horse", "Elephant", "Donkey"], correct: "Camel" },
+            { question: "What is the largest country by area?", options: ["Russia", "Canada", "China", "USA"], correct: "Russia" },
+            { question: "Who wrote 'The Odyssey'?", options: ["Homer", "Virgil", "Sophocles", "Plato"], correct: "Homer" },
+            { question: "Which vitamin is produced when a person is exposed to sunlight?", options: ["Vitamin D", "Vitamin C", "Vitamin B12", "Vitamin A"], correct: "Vitamin D" },
+            { question: "Which blood group is known as the universal donor?", options: ["O Negative", "A Positive", "B Negative", "AB Positive"], correct: "O Negative" },
+            { question: "What is the largest bone in the human body?", options: ["Femur", "Tibia", "Humerus", "Fibula"], correct: "Femur" },
+            { question: "Which country is famous for the kangaroo?", options: ["Australia", "New Zealand", "South Africa", "India"], correct: "Australia" },
+            { question: "Who is the Greek god of thunder?", options: ["Zeus", "Apollo", "Hermes", "Ares"], correct: "Zeus" },
+            { question: "What is the main gas found in the air we breathe?", options: ["Nitrogen", "Oxygen", "Carbon Dioxide", "Hydrogen"], correct: "Nitrogen" },
+            { question: "Which is the smallest continent by land area?", options: ["Australia", "Europe", "Antarctica", "South America"], correct: "Australia" },
+            { question: "Who invented the light bulb?", options: ["Thomas Edison", "Nikola Tesla", "Alexander Graham Bell", "James Watt"], correct: "Thomas Edison" },
+            { question: "Which is the only mammal capable of true flight?", options: ["Bat", "Flying Squirrel", "Ostrich", "Penguin"], correct: "Bat" },
+            { question: "Which metal is liquid at room temperature?", options: ["Mercury", "Gold", "Silver", "Copper"], correct: "Mercury" },
+            { question: "What is the name of the fairy in Peter Pan?", options: ["Tinker Bell", "Cinderella", "Ariel", "Belle"], correct: "Tinker Bell" },
+            { question: "Which is the largest organ in the human body?", options: ["Skin", "Liver", "Heart", "Lung"], correct: "Skin" },
+            { question: "Which is the world’s largest ocean?", options: ["Pacific Ocean", "Atlantic Ocean", "Indian Ocean", "Arctic Ocean"], correct: "Pacific Ocean" },
+            { question: "What is the currency of the United Kingdom?", options: ["Pound Sterling", "Euro", "Dollar", "Franc"], correct: "Pound Sterling" },
+            { question: "Who is the author of 'The Hobbit'?", options: ["J.R.R. Tolkien", "C.S. Lewis", "J.K. Rowling", "George R.R. Martin"], correct: "J.R.R. Tolkien" },
+            { question: "Which is the most widely spoken language in the world?", options: ["English", "Mandarin Chinese", "Spanish", "Hindi"], correct: "Mandarin Chinese" }
+        ];
+
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOption = null;
+        let answered = false;
+        let autoNextTimeout = null;
+        let userAnswers = [];
+
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const submitBtn = document.getElementById('submit-btn');
+        const scoreDisplay = document.getElementById('score-display');
+        const restartBtn = document.getElementById('restart-btn');
+        const instructionsDiv = document.getElementById('instructions');
+        const quizContainer = document.getElementById('quiz-container');
+        const startBtn = document.getElementById('start-btn');
+        const reviewSection = document.getElementById('review-section');
+
+        startBtn.onclick = function() {
+            instructionsDiv.style.display = 'none';
+            quizContainer.style.display = 'flex';
+            startQuiz();
+            window.scrollTo({top: 0, behavior: "auto"});
+        };
+
+        function startQuiz() {
+            if (autoNextTimeout) clearTimeout(autoNextTimeout);
+            currentQuestions = questions.sort(() => Math.random() - 0.5).slice(0, 10);
+            currentQuestionIndex = 0;
+            score = 0;
+            answered = false;
+            selectedOption = null;
+            userAnswers = [];
+            scoreDisplay.textContent = '';
+            restartBtn.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submit';
+            submitBtn.style.display = 'inline-block';
+            reviewSection.innerHTML = '';
+            showQuestion();
+            window.scrollTo({top: 0, behavior: "auto"});
+        }
+
+        function showQuestion() {
+            const q = currentQuestions[currentQuestionIndex];
+            questionText.textContent = q.question;
+            optionsContainer.innerHTML = '';
+            selectedOption = null;
+            answered = false;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submit';
+
+            // Shuffle options for each question
+            const shuffledOptions = q.options.slice().sort(() => Math.random() - 0.5);
+            shuffledOptions.forEach(option => {
+                const btn = document.createElement('button');
+                btn.textContent = option;
+                btn.className = 'option';
+                btn.onclick = () => selectOption(btn, option);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(button, option) {
+            if (answered) return;
+            Array.from(optionsContainer.children).forEach(btn => btn.classList.remove('selected'));
+            selectedOption = button;
+            selectedOption.classList.add('selected');
+            submitBtn.disabled = false;
+        }
+
+        submitBtn.onclick = function() {
+            if (!selectedOption || answered) return;
+            answered = true;
+            const q = currentQuestions[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll('button.option');
+
+            let userAnswer = selectedOption.textContent;
+            userAnswers.push({
+                question: q.question,
+                options: q.options,
+                yourAnswer: userAnswer,
+                correctAnswer: q.correct
+            });
+
+            buttons.forEach(btn => {
+                btn.classList.add('disabled');
+                btn.disabled = true;
+                if (btn.textContent === q.correct) {
+                    btn.classList.add('correct');
+                } else if (btn === selectedOption && btn.textContent !== q.correct) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            if (selectedOption.textContent === q.correct) score++;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitted!';
+            // Move to next question after 1.5s
+            autoNextTimeout = setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < currentQuestions.length) {
+                    showQuestion();
+                } else {
+                    showFinalScore();
+                }
+                window.scrollTo({top: 0, behavior: "smooth"});
+            }, 1500);
+        };
+
+        function showFinalScore() {
+            questionText.textContent = '';
+            optionsContainer.innerHTML = '';
+            submitBtn.style.display = 'none';
+            scoreDisplay.innerHTML = `🏆 <span style="color:#43e97b">${score}</span> / <span style="color:#ffe082">${currentQuestions.length}</span><br><span style="font-size:1.2rem;color:#a3cef1">${getResultComment()}</span>`;
+            showReview();
+            restartBtn.style.display = 'inline-block';
+            window.scrollTo({top: 0, behavior: "smooth"});
+        }
+
+        function showReview() {
+            reviewSection.innerHTML = "<h2 style='color:#ffe082;text-align:center;font-size:1.5rem;'>Question Review</h2>";
+            userAnswers.forEach((ans, idx) => {
+                let yourIsCorrect = ans.yourAnswer === ans.correctAnswer;
+                reviewSection.innerHTML += `
+                    <div class="review-question">
+                        <div class="question-text">Q${idx+1}. ${ans.question}</div>
+                        <div class="review-answer">
+                            Your answer: <span class="your-answer${yourIsCorrect ? '' : ' wrong'}">${ans.yourAnswer || "<i>No answer</i>"}</span>
+                        </div>
+                        <div class="review-answer">
+                            Correct answer: <span class="correct-answer">${ans.correctAnswer}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function getResultComment() {
+            if (score === 10) return "Perfect! You're a genius! 🧠";
+            if (score >= 8) return "Excellent work! 🎯";
+            if (score >= 5) return "Good effort! 💪";
+            return "Keep practicing! 📚";
+        }
+
+        restartBtn.onclick = function() {
+            quizContainer.style.display = 'none';
+            instructionsDiv.style.display = 'block';
+            window.scrollTo({top: 0, behavior: "auto"});
+        };
+
+        // Scroll to top button logic
+        const scrollBtn = document.getElementById("scrollToTopBtn");
+        window.onscroll = function() {scrollFunction()};
+        function scrollFunction() {
+            if (document.body.scrollTop > 80 || document.documentElement.scrollTop > 80) {
+                scrollBtn.style.display = "block";
+            } else {
+                scrollBtn.style.display = "none";
+            }
+        }
+        function topFunction() {
+            window.scrollTo({top: 0, behavior: "smooth"});
+        }
+    </script>
+</body>
+</html>
